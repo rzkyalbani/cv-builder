@@ -1,0 +1,110 @@
+import { ResumeContent } from '@/types/resume';
+
+interface ResumePreviewProps {
+  data: ResumeContent;
+}
+
+export default function ResumePreview({ data }: ResumePreviewProps) {
+  const { personalDetail } = data;
+
+  // A4 dimensions: 210mm x 297mm (ratio: 1:1.414)
+  return (
+    <div className="w-full max-w-[210mm] bg-white shadow-lg border border-gray-300" style={{ aspectRatio: '1/1.414' }}>
+      <div className="p-8 h-full">
+        {/* Header section - Personal Details */}
+        <div className="border-b border-gray-200 pb-6 mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {personalDetail.fullName || 'Your Name'}
+              </h1>
+              <h2 className="text-xl text-gray-700 mt-2">
+                {personalDetail.headline || 'Professional Title'}
+              </h2>
+            </div>
+            {personalDetail.photoUrl && (
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-300">
+                <img 
+                  src={personalDetail.photoUrl} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mt-6">
+            <div>
+              {personalDetail.email && (
+                <p className="text-gray-600">
+                  <span className="font-medium">Email:</span> {personalDetail.email}
+                </p>
+              )}
+              {personalDetail.phone && (
+                <p className="text-gray-600 mt-1">
+                  <span className="font-medium">Phone:</span> {personalDetail.phone}
+                </p>
+              )}
+            </div>
+            <div>
+              {personalDetail.address && (
+                <p className="text-gray-600">
+                  <span className="font-medium">Address:</span> {personalDetail.address}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Social Links */}
+          <div className="flex flex-wrap gap-4 mt-4">
+            {personalDetail.socialLinks?.linkedin && (
+              <a 
+                href={personalDetail.socialLinks.linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                LinkedIn
+              </a>
+            )}
+            {personalDetail.socialLinks?.github && (
+              <a 
+                href={personalDetail.socialLinks.github} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                GitHub
+              </a>
+            )}
+            {personalDetail.socialLinks?.portfolio && (
+              <a 
+                href={personalDetail.socialLinks.portfolio} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Portfolio
+              </a>
+            )}
+            {personalDetail.socialLinks?.twitter && (
+              <a 
+                href={personalDetail.socialLinks.twitter} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Twitter
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Placeholder for other sections - will be implemented later */}
+        <div className="mt-6">
+          <p className="text-gray-500 italic">Other sections will appear here...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
