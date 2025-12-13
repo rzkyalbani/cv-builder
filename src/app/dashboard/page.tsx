@@ -1,46 +1,74 @@
-'use client';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import  prisma  from '@/lib/prisma';
+import Link from 'next/link';
+import CreateNewResumeButton from '../components/CreateNewResumeButton';
 
-import { signOut } from 'next-auth/react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-
-export default function DashboardPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  if (status === 'loading') {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+async function getResumes() {
+  const session = await getServerSession(authOptions);
+  
+  if (!session || !session.user) {
+    // This should ideally redirect to login, but for now we'll throw an error
+    throw new Error('User not authenticated');
   }
 
-  if (status === 'unauthenticated') {
-    router.push('/login');
-    return null;
-  }
+  const resumes = await prisma.resume.findMany({
+    where: {
+      userId: session.user.id,
+    },
+    orderBy: {
+      updatedAt: 'desc',
+    },
+    select: {
+      id: true,
+      title: true,
+      updatedAt: true,
+    },
+  });
+
+  return resumes;
+}
+
+export default async function DashboardPage() {
+  const resumes = await getResumes();
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Welcome to FlowCV Clone</h1>
-        
-        <div className="mb-8 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">User Information</h2>
-          <p className="text-gray-600 dark:text-gray-300"><span className="font-medium">Name:</span> {session?.user?.name || 'N/A'}</p>
-          <p className="text-gray-600 dark:text-gray-300"><span className="font-medium">Email:</span> {session?.user?.email || 'N/A'}</p>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-200"
-          >
-            Logout
-          </button>
-        </div>
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Resumes</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          Manage your resume templates and drafts
+        </p>
       </div>
+
+      {resumes.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-12 text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">No resumes yet</h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Get started by creating your first resume
+          </p>
+          <CreateNewResumeButton />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <CreateNewResumeButton />
+          
+          {resumes.map((resume) => (
+            <Link 
+              href={`/editor/${resume.id}`} 
+              key={resume.id}
+              className="block bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow duration-200 border border-gray-200 dark:border-gray-700"
+            >
+              <h3 className="font-semibold text-lg text-gray-900 dark:text-white truncate">
+                {resume.title}
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+                Last updated: {new Date(resume.updatedAt).toLocaleDateString()}
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
