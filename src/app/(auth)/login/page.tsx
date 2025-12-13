@@ -31,8 +31,8 @@ export default function LoginPage() {
         return;
       }
 
-      // On success, redirect to dashboard or home
-      router.push('/');
+      // On success, redirect to dashboard
+      router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
       setError('An error occurred during login');

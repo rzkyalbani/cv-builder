@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { UserPlus } from 'lucide-react';
+import { signIn } from 'next-auth/react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -18,6 +20,13 @@ export default function RegisterPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Client-side validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch('/api/register', {
@@ -34,8 +43,21 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      // On success, redirect to login
-      router.push('/login');
+      // Auto-login after successful registration
+      const signInResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setError(signInResult.error);
+        setLoading(false);
+        return;
+      }
+
+      // On success, redirect to dashboard
+      router.push('/dashboard');
       router.refresh(); // Refresh to update any UI that depends on auth state
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration');
@@ -106,12 +128,27 @@ export default function RegisterPage() {
           />
         </div>
 
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+            placeholder="••••••••"
+          />
+        </div>
+
         <button
           type="submit"
           disabled={loading}
           className={`w-full py-3 px-4 rounded-lg text-white font-medium ${
-            loading 
-              ? 'bg-blue-400 cursor-not-allowed' 
+            loading
+              ? 'bg-blue-400 cursor-not-allowed'
               : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
           } transition-colors duration-200`}
         >
