@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ResumeContent, ResumeSection } from '@/types/resume';
 import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsForm';
@@ -22,6 +23,18 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
   const [resumeData, setResumeData] = useState<ResumeContent>(initialData);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const componentRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: `${resumeData.title || "Resume"}-${resumeId}`,
+    pageStyle: `
+      @page {
+        size: auto;
+        margin: 0mm;
+      }
+    `
+  });
 
   useEffect(() => {
     setResumeData(initialData);
@@ -225,13 +238,22 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
             className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
           />
         </div>
-        <button
-          onClick={handleSave}
-          disabled={savingStatus === 'saving'}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-        >
-          {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
-        </button>
+        <div className="flex space-x-2">
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+          >
+            Download PDF
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={savingStatus === 'saving'}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
+          </button>
+        </div>
       </header>
 
       {/* Split layout */}
@@ -291,7 +313,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
 
         {/* Right Panel: Live Preview Area */}
         <div className="w-1/2 bg-gray-200 overflow-y-auto p-6 flex justify-center items-start">
-          <ResumePreview data={resumeData} />
+          <ResumePreview ref={componentRef} data={resumeData} />
         </div>
       </div>
     </div>

@@ -24,3 +24,112 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Print styles */
+@media print {
+  html,
+  body {
+    height: initial !important;
+    width: initial !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide non-essential UI elements during printing */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Hide editor sidebar and header */
+  .editor-sidebar,
+  .editor-header,
+  header,
+  .bg-gray-100,
+  .border-r,
+  .flex.space-x-2,
+  button {
+    display: none !important;
+  }
+
+  /* Ensure resume content is visible and properly formatted */
+  #resume-content {
+    box-shadow: none !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 210mm !important;
+    height: 297mm !important;
+    min-height: 297mm !important;
+    max-width: none !important;
+    background: white !important;
+    aspect-ratio: inherit !important;
+    position: relative !important;
+  }
+
+  /* Force display of print-specific elements */
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .print\:border {
+    border: 1px solid #000 !important;
+  }
+
+  .print\:bg-transparent {
+    background: transparent !important;
+  }
+
+  .print\:text-xs {
+    font-size: 0.75rem !important;
+  }
+
+  .print\:text-sm {
+    font-size: 0.875rem !important;
+  }
+
+  .print\:p-6 {
+    padding: 1.5rem !important;
+  }
+
+  .print\:pb-2 {
+    padding-bottom: 0.5rem !important;
+  }
+
+  .print\:mb-2 {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .print\:mt-1 {
+    margin-top: 0.25rem !important;
+  }
+
+  .print\:border-gray-200 {
+    border-color: #e5e7eb !important;
+  }
+
+  .print\:text-gray-500 {
+    color: #6b7280 !important;
+  }
+
+  .print\:text-gray-600 {
+    color: #4b5563 !important;
+  }
+
+  .print\:list-none {
+    list-style-type: none !important;
+  }
+
+  .print\:ml-0 {
+    margin-left: 0 !important;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0mm;
+}
