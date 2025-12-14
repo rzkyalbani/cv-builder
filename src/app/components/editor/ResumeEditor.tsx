@@ -91,6 +91,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           <ExperienceForm
             items={section.items}
             onChange={(items) => handleSectionChange(index, items)}
+            droppableId={section.id}
           />
         );
       case 'education':
@@ -98,6 +99,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           <EducationForm
             items={section.items}
             onChange={(items) => handleSectionChange(index, items)}
+            droppableId={section.id}
           />
         );
       case 'skills':
@@ -105,6 +107,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           <SkillsForm
             items={section.items}
             onChange={(items) => handleSectionChange(index, items)}
+            droppableId={section.id}
           />
         );
       case 'projects':
@@ -112,6 +115,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           <ProjectsForm
             items={section.items}
             onChange={(items) => handleSectionChange(index, items)}
+            droppableId={section.id}
           />
         );
       case 'custom':
@@ -120,6 +124,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
             items={section.items}
             onChange={(items) => handleSectionChange(index, items)}
             title={section.title}
+            droppableId={section.id}
           />
         );
       default:
@@ -134,14 +139,38 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
   const onDragEnd = (result: DropResult) => {
     if (!result.destination) return; // dropped outside the list
 
-    const items = Array.from(resumeData.sections);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    if (result.type === 'SECTION') {
+      // Reorder the sections array
+      const items = Array.from(resumeData.sections);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
 
-    setResumeData(prev => ({
-      ...prev,
-      sections: items
-    }));
+      setResumeData(prev => ({
+        ...prev,
+        sections: items
+      }));
+    } else if (result.type === 'ITEM') {
+      // Reorder the items array within a section
+      const sectionId = result.source.droppableId;
+      const sectionIndex = resumeData.sections.findIndex(section => section.id === sectionId);
+
+      if (sectionIndex === -1) return;
+
+      const updatedSections = [...resumeData.sections];
+      const items = Array.from(updatedSections[sectionIndex].items);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+
+      updatedSections[sectionIndex] = {
+        ...updatedSections[sectionIndex],
+        items: items
+      };
+
+      setResumeData(prev => ({
+        ...prev,
+        sections: updatedSections
+      }));
+    }
   };
 
   const handleSave = async () => {
@@ -225,7 +254,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
 
           {/* Render existing sections with Drag & Drop functionality */}
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="sections">
+            <Droppable droppableId="sections" type="SECTION">
               {(provided) => (
                 <div {...provided.droppableProps} ref={provided.innerRef}>
                   {resumeData.sections.map((section, index) => (
