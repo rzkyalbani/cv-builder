@@ -21,7 +21,7 @@ interface ResumeEditorProps {
 export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProps) {
   const [resumeData, setResumeData] = useState<ResumeContent>(initialData);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [activeSection, setActiveSection] = useState<string | null>('personal-details');
+  const [activeSection, setActiveSection] = useState<string | null>(null);
 
   useEffect(() => {
     setResumeData(initialData);
