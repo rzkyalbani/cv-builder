@@ -5,6 +5,10 @@ import { ResumeContent, ResumeSection } from '@/types/resume';
 import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsForm';
 import ResumePreview from '@/app/components/preview/ResumePreview';
 import ExperienceForm from '@/app/components/editor/forms/ExperienceForm';
+import EducationForm from '@/app/components/editor/forms/EducationForm';
+import SkillsForm from '@/app/components/editor/forms/SkillsForm';
+import ProjectsForm from '@/app/components/editor/forms/ProjectsForm';
+import CustomSectionForm from '@/app/components/editor/forms/CustomSectionForm';
 import AddSection from '@/app/components/editor/AddSection';
 import SectionWrapper from '@/app/components/editor/SectionWrapper';
 
@@ -86,6 +90,35 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           <ExperienceForm
             items={section.items}
             onChange={(items) => handleSectionChange(index, items)}
+          />
+        );
+      case 'education':
+        return (
+          <EducationForm
+            items={section.items}
+            onChange={(items) => handleSectionChange(index, items)}
+          />
+        );
+      case 'skills':
+        return (
+          <SkillsForm
+            items={section.items}
+            onChange={(items) => handleSectionChange(index, items)}
+          />
+        );
+      case 'projects':
+        return (
+          <ProjectsForm
+            items={section.items}
+            onChange={(items) => handleSectionChange(index, items)}
+          />
+        );
+      case 'custom':
+        return (
+          <CustomSectionForm
+            items={section.items}
+            onChange={(items) => handleSectionChange(index, items)}
+            title={section.title}
           />
         );
       default:
