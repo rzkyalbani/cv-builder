@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ResumeContent } from '@/types/resume';
+import { ResumeContent, ResumeSection } from '@/types/resume';
 import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsForm';
 import ResumePreview from '@/app/components/preview/ResumePreview';
+import ExperienceForm from '@/app/components/editor/forms/ExperienceForm';
+import AddSection from '@/app/components/editor/AddSection';
 
 interface ResumeEditorProps {
   initialData: ResumeContent;
@@ -25,9 +27,65 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     }));
   };
 
+  const handleSectionChange = (index: number, newItems: any[]) => {
+    setResumeData(prev => {
+      const newSections = [...prev.sections];
+      newSections[index] = {
+        ...newSections[index],
+        items: newItems
+      };
+      return { ...prev, sections: newSections };
+    });
+  };
+
+  const handleAddSection = (type: 'experience' | 'education' | 'skills' | 'projects' | 'custom') => {
+    // Check if this section type already exists
+    const existingSection = resumeData.sections.find(section => section.type === type);
+
+    if (existingSection) {
+      // Optional: scroll to the existing section
+      return;
+    }
+
+    const newSection: ResumeSection = {
+      id: Date.now().toString(), // Simple ID generation
+      type,
+      title: type.charAt(0).toUpperCase() + type.slice(1),
+      isVisible: true,
+      columns: 1,
+      items: [],
+    };
+
+    setResumeData(prev => ({
+      ...prev,
+      sections: [...prev.sections, newSection]
+    }));
+  };
+
+  const renderSectionForm = (section: ResumeSection, index: number) => {
+    switch (section.type) {
+      case 'experience':
+        return (
+          <ExperienceForm
+            items={section.items}
+            onChange={(items) => handleSectionChange(index, items)}
+          />
+        );
+      default:
+        return (
+          <div className="border border-gray-200 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
+            </h3>
+            <p className="text-gray-500 italic">Form for this section type is coming soon</p>
+          </div>
+        );
+    }
+  };
+
   const handleSave = async () => {
     setSavingStatus('saving');
-    
+
     try {
       const response = await fetch(`/api/resumes/${resumeId}`, {
         method: 'PUT',
@@ -42,7 +100,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       }
 
       setSavingStatus('saved');
-      
+
       // Reset the saved status after 2 seconds
       setTimeout(() => {
         setSavingStatus('idle');
@@ -72,10 +130,20 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         {/* Left Panel: Form Area */}
         <div className="w-1/2 bg-white overflow-y-auto p-6 border-r border-gray-200">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Edit Resume</h2>
-          <PersonalDetailsForm 
-            data={resumeData.personalDetail} 
-            onChange={handlePersonalDetailsChange} 
+          <PersonalDetailsForm
+            data={resumeData.personalDetail}
+            onChange={handlePersonalDetailsChange}
           />
+
+          {/* Render existing sections */}
+          {resumeData.sections.map((section, index) => (
+            <div key={section.id}>
+              {renderSectionForm(section, index)}
+            </div>
+          ))}
+
+          {/* Add section component */}
+          <AddSection onAddSection={handleAddSection} />
         </div>
 
         {/* Right Panel: Live Preview Area */}

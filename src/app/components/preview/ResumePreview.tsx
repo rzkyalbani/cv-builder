@@ -100,10 +100,50 @@ export default function ResumePreview({ data }: ResumePreviewProps) {
           </div>
         </div>
 
-        {/* Placeholder for other sections - will be implemented later */}
-        <div className="mt-6">
-          <p className="text-gray-500 italic">Other sections will appear here...</p>
-        </div>
+        {/* Render sections */}
+        {data.sections.map((section) => {
+          if (!section.isVisible) return null;
+
+          switch (section.type) {
+            case 'experience':
+              return (
+                <div key={section.id} className="mt-6">
+                  <h2 className="text-xl font-bold text-gray-900 border-b border-gray-300 pb-2 mb-4">
+                    {section.title}
+                  </h2>
+                  <div className="space-y-4">
+                    {section.items.map((item: any) => (
+                      <div key={item.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                        <div className="flex justify-between">
+                          <h3 className="text-lg font-semibold text-gray-900">{item.role}</h3>
+                          <div className="text-gray-600">
+                            {item.startDate && <span>{item.startDate}</span>}
+                            {item.startDate && item.endDate && <span> - </span>}
+                            {item.endDate ? (
+                              <span>{item.endDate}</span>
+                            ) : item.currentlyWorking ? (
+                              <span>Present</span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <p className="text-gray-700 font-medium">{item.company}</p>
+                        <p className="text-gray-600 mt-2">{item.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            default:
+              return (
+                <div key={section.id} className="mt-6">
+                  <h2 className="text-xl font-bold text-gray-900 border-b border-gray-300 pb-2 mb-4">
+                    {section.title}
+                  </h2>
+                  <p className="text-gray-500 italic">Preview for this section is coming soon</p>
+                </div>
+              );
+          }
+        })}
       </div>
     </div>
   );
