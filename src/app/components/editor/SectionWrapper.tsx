@@ -7,24 +7,39 @@ interface SectionWrapperProps {
   children: ReactNode;
   onDelete?: () => void;
   canDelete?: boolean;
+  dragHandleProps?: any; // Props for drag handle
 }
 
-export default function SectionWrapper({ 
-  title, 
-  isOpen, 
-  onToggle, 
-  children, 
+export default function SectionWrapper({
+  title,
+  isOpen,
+  onToggle,
+  children,
   onDelete,
-  canDelete = false
+  canDelete = false,
+  dragHandleProps
 }: SectionWrapperProps) {
   return (
     <div className="border border-gray-200 rounded-lg mb-4 overflow-hidden">
       {/* Section Header */}
-      <div 
+      <div
         className="flex justify-between items-center p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer"
         onClick={onToggle}
       >
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        <div className="flex items-center">
+          {/* Drag Handle */}
+          {dragHandleProps && (
+            <div
+              {...dragHandleProps}
+              className="mr-3 cursor-move text-gray-400 hover:text-gray-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v2.586L7.707 6.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l2-2A1 1 0 0011 8.586V6z" clipRule="evenodd" />
+              </svg>
+            </div>
+          )}
+          <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+        </div>
         <div className="flex items-center space-x-2">
           {canDelete && onDelete && (
             <button

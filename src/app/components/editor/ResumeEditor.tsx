@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { ResumeContent, ResumeSection } from '@/types/resume';
 import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsForm';
 import ResumePreview from '@/app/components/preview/ResumePreview';
@@ -130,6 +131,19 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     }
   };
 
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return; // dropped outside the list
+
+    const items = Array.from(resumeData.sections);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    setResumeData(prev => ({
+      ...prev,
+      sections: items
+    }));
+  };
+
   const handleSave = async () => {
     setSavingStatus('saving');
 
@@ -139,7 +153,10 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content: resumeData }),
+        body: JSON.stringify({
+          content: resumeData,
+          title: resumeData.title
+        }),
       });
 
       if (!response.ok) {
@@ -158,11 +175,27 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     }
   };
 
+  const updateTitle = (newTitle: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      title: newTitle
+    }));
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header with Save button */}
+      {/* Header with Save button and editable title */}
       <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
-        <h1 className="text-xl font-semibold text-gray-800">Resume Editor</h1>
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-semibold text-gray-800">Resume Editor</h1>
+          <input
+            type="text"
+            value={resumeData.title ?? ""}
+            onChange={(e) => updateTitle(e.target.value)}
+            placeholder="Untitled Resume"
+            className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          />
+        </div>
         <button
           onClick={handleSave}
           disabled={savingStatus === 'saving'}
@@ -190,19 +223,38 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
             />
           </SectionWrapper>
 
-          {/* Render existing sections with SectionWrapper */}
-          {resumeData.sections.map((section, index) => (
-            <SectionWrapper
-              key={section.id}
-              title={section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
-              isOpen={activeSection === section.id}
-              onToggle={() => handleSectionToggle(section.id)}
-              onDelete={() => handleDeleteSection(section.id)}
-              canDelete={true}
-            >
-              {renderSectionForm(section, index)}
-            </SectionWrapper>
-          ))}
+          {/* Render existing sections with Drag & Drop functionality */}
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="sections">
+              {(provided) => (
+                <div {...provided.droppableProps} ref={provided.innerRef}>
+                  {resumeData.sections.map((section, index) => (
+                    <Draggable key={section.id} draggableId={section.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`${snapshot.isDragging ? 'shadow-lg rounded-md' : ''}`}
+                        >
+                          <SectionWrapper
+                            title={section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
+                            isOpen={activeSection === section.id}
+                            onToggle={() => handleSectionToggle(section.id)}
+                            onDelete={() => handleDeleteSection(section.id)}
+                            canDelete={true}
+                            dragHandleProps={provided.dragHandleProps} // Pass the drag handle props
+                          >
+                            {renderSectionForm(section, index)}
+                          </SectionWrapper>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )}
+            </Droppable>
+          </DragDropContext>
 
           {/* Add section component */}
           <AddSection onAddSection={handleAddSection} />

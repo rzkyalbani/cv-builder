@@ -112,7 +112,7 @@ export default function EducationForm({ items, onChange }: EducationFormProps) {
                         </label>
                         <input
                           type="text"
-                          value={item.school}
+                          value={item.school || ''}
                           onChange={(e) => handleItemChange(index, 'school', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="School name"
@@ -125,7 +125,7 @@ export default function EducationForm({ items, onChange }: EducationFormProps) {
                         </label>
                         <input
                           type="text"
-                          value={item.degree}
+                          value={item.degree || ''}
                           onChange={(e) => handleItemChange(index, 'degree', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Degree"
@@ -140,7 +140,7 @@ export default function EducationForm({ items, onChange }: EducationFormProps) {
                         </label>
                         <input
                           type="month"
-                          value={item.startDate}
+                          value={item.startDate || ''}
                           onChange={(e) => handleItemChange(index, 'startDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -152,7 +152,7 @@ export default function EducationForm({ items, onChange }: EducationFormProps) {
                         </label>
                         <input
                           type="month"
-                          value={item.endDate}
+                          value={item.endDate || ''}
                           onChange={(e) => handleItemChange(index, 'endDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="End date"

@@ -19,7 +19,7 @@ export default function PersonalDetailsForm({ data, onChange }: PersonalDetailsF
         </label>
         <input
           type="text"
-          value={data.fullName}
+          value={data.fullName || ''}
           onChange={(e) => handleChange('fullName', e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="John Doe"
@@ -45,7 +45,7 @@ export default function PersonalDetailsForm({ data, onChange }: PersonalDetailsF
         </label>
         <input
           type="email"
-          value={data.email}
+          value={data.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="john.doe@example.com"

@@ -16,7 +16,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       });
     }
 
-    const { content } = await request.json();
+    const { content, title } = await request.json();
 
     // Verify that the resume belongs to the current user
     const existingResume = await prisma.resume.findFirst({
@@ -39,6 +39,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       },
       data: {
         content: content,
+        title: title,
         updatedAt: new Date(),
       },
       select: {

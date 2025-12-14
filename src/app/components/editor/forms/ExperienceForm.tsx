@@ -106,7 +106,7 @@ export default function ExperienceForm({ items, onChange }: ExperienceFormProps)
                         </label>
                         <input
                           type="text"
-                          value={item.company}
+                          value={item.company || ''}
                           onChange={(e) => handleItemChange(index, 'company', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Company name"
@@ -119,7 +119,7 @@ export default function ExperienceForm({ items, onChange }: ExperienceFormProps)
                         </label>
                         <input
                           type="text"
-                          value={item.role}
+                          value={item.role || ''}
                           onChange={(e) => handleItemChange(index, 'role', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Job title"
@@ -134,7 +134,7 @@ export default function ExperienceForm({ items, onChange }: ExperienceFormProps)
                         </label>
                         <input
                           type="month"
-                          value={item.startDate}
+                          value={item.startDate || ''}
                           onChange={(e) => handleItemChange(index, 'startDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -146,7 +146,7 @@ export default function ExperienceForm({ items, onChange }: ExperienceFormProps)
                         </label>
                         <input
                           type="month"
-                          value={item.endDate}
+                          value={item.endDate || ''}
                           onChange={(e) => handleItemChange(index, 'endDate', e.target.value)}
                           disabled={item.currentlyWorking}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
@@ -171,7 +171,7 @@ export default function ExperienceForm({ items, onChange }: ExperienceFormProps)
                         Description
                       </label>
                       <textarea
-                        value={item.description}
+                        value={item.description || ''}
                         onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

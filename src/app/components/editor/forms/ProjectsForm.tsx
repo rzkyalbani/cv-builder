@@ -120,7 +120,7 @@ export default function ProjectsForm({ items, onChange }: ProjectsFormProps) {
                         </label>
                         <input
                           type="text"
-                          value={item.title}
+                          value={item.title || ''}
                           onChange={(e) => handleItemChange(index, 'title', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="Project name"
@@ -148,7 +148,7 @@ export default function ProjectsForm({ items, onChange }: ProjectsFormProps) {
                         </label>
                         <input
                           type="month"
-                          value={item.startDate}
+                          value={item.startDate || ''}
                           onChange={(e) => handleItemChange(index, 'startDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -160,7 +160,7 @@ export default function ProjectsForm({ items, onChange }: ProjectsFormProps) {
                         </label>
                         <input
                           type="month"
-                          value={item.endDate}
+                          value={item.endDate || ''}
                           onChange={(e) => handleItemChange(index, 'endDate', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="End date"
