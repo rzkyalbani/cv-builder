@@ -6,6 +6,7 @@ import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsFo
 import ResumePreview from '@/app/components/preview/ResumePreview';
 import ExperienceForm from '@/app/components/editor/forms/ExperienceForm';
 import AddSection from '@/app/components/editor/AddSection';
+import SectionWrapper from '@/app/components/editor/SectionWrapper';
 
 interface ResumeEditorProps {
   initialData: ResumeContent;
@@ -15,6 +16,7 @@ interface ResumeEditorProps {
 export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProps) {
   const [resumeData, setResumeData] = useState<ResumeContent>(initialData);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [activeSection, setActiveSection] = useState<string | null>('personal-details');
 
   useEffect(() => {
     setResumeData(initialData);
@@ -44,6 +46,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
 
     if (existingSection) {
       // Optional: scroll to the existing section
+      setActiveSection(existingSection.id);
       return;
     }
 
@@ -60,6 +63,20 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       ...prev,
       sections: [...prev.sections, newSection]
     }));
+
+    // Set the new section as active
+    setActiveSection(newSection.id);
+  };
+
+  const handleSectionToggle = (sectionId: string) => {
+    setActiveSection(activeSection === sectionId ? null : sectionId);
+  };
+
+  const handleDeleteSection = (sectionId: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      sections: prev.sections.filter(section => section.id !== sectionId)
+    }));
   };
 
   const renderSectionForm = (section: ResumeSection, index: number) => {
@@ -73,10 +90,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         );
       default:
         return (
-          <div className="border border-gray-200 rounded-lg p-4 mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
-            </h3>
+          <div>
             <p className="text-gray-500 italic">Form for this section type is coming soon</p>
           </div>
         );
@@ -130,16 +144,31 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         {/* Left Panel: Form Area */}
         <div className="w-1/2 bg-white overflow-y-auto p-6 border-r border-gray-200">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Edit Resume</h2>
-          <PersonalDetailsForm
-            data={resumeData.personalDetail}
-            onChange={handlePersonalDetailsChange}
-          />
 
-          {/* Render existing sections */}
+          {/* Personal Details Section with SectionWrapper */}
+          <SectionWrapper
+            title="Personal Details"
+            isOpen={activeSection === 'personal-details'}
+            onToggle={() => setActiveSection(activeSection === 'personal-details' ? null : 'personal-details')}
+          >
+            <PersonalDetailsForm
+              data={resumeData.personalDetail}
+              onChange={handlePersonalDetailsChange}
+            />
+          </SectionWrapper>
+
+          {/* Render existing sections with SectionWrapper */}
           {resumeData.sections.map((section, index) => (
-            <div key={section.id}>
+            <SectionWrapper
+              key={section.id}
+              title={section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
+              isOpen={activeSection === section.id}
+              onToggle={() => handleSectionToggle(section.id)}
+              onDelete={() => handleDeleteSection(section.id)}
+              canDelete={true}
+            >
               {renderSectionForm(section, index)}
-            </div>
+            </SectionWrapper>
           ))}
 
           {/* Add section component */}
