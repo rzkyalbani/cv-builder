@@ -21,6 +21,7 @@ async function getResumes() {
       id: true,
       title: true,
       updatedAt: true,
+      content: true,
     },
   });
 

@@ -21,12 +21,14 @@ import {
   AlertDialogTitle,
 } from '@/app/components/ui/alert-dialog';
 import Link from 'next/link';
+import { ResumeContent } from '@/types/resume';
 
 interface ResumeCardProps {
   resume: {
     id: string;
     title: string;
     updatedAt: Date;
+    content?: ResumeContent | any;
   };
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
@@ -35,6 +37,10 @@ interface ResumeCardProps {
 export function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
+  // Parse content safely
+  const content = resume.content as ResumeContent | undefined;
+  const personalDetail = content?.personalDetail;
+
   return (
     <>
       <div className="group relative flex flex-col rounded-lg border border-slate-200 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-200">
@@ -42,8 +48,47 @@ export function ResumeCard({ resume, onDelete, onDuplicate }: ResumeCardProps) {
           href={`/editor/${resume.id}`}
           className="flex-1 p-6 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 rounded-lg"
         >
-          <div className="aspect-[210/297] mb-4 rounded border border-slate-200 bg-slate-50 flex items-center justify-center">
-            <span className="text-slate-400 text-sm">Resume Preview</span>
+          {/* Mini Preview */}
+          <div className="aspect-[210/297] mb-4 rounded border border-slate-200 bg-white overflow-hidden">
+            <div className="scale-[0.25] origin-top-left w-[840px] h-[1188px] p-12 bg-white">
+              {/* Header */}
+              <div className="mb-6">
+                <h1 className="text-4xl font-bold text-slate-900 truncate">
+                  {personalDetail?.fullName || 'Your Name'}
+                </h1>
+                {personalDetail?.headline && (
+                  <p className="text-lg text-slate-600 mt-2 truncate">
+                    {personalDetail.headline}
+                  </p>
+                )}
+                <div className="flex gap-4 mt-3 text-sm text-slate-600">
+                  {personalDetail?.email && <span className="truncate">{personalDetail.email}</span>}
+                  {personalDetail?.phone && <span className="truncate">{personalDetail.phone}</span>}
+                </div>
+              </div>
+              
+              {/* Sections Preview */}
+              <div className="space-y-4">
+                {content?.sections?.slice(0, 2).map((section) => (
+                  <div key={section.id}>
+                    <h2 className="text-xl font-semibold text-slate-900 uppercase tracking-wide border-b border-slate-300 pb-1 mb-2">
+                      {section.title}
+                    </h2>
+                    <div className="text-sm text-slate-700">
+                      {section.items?.length > 0 && (
+                        <div className="space-y-2">
+                          {section.items.slice(0, 2).map((item: any) => (
+                            <div key={item.id} className="truncate">
+                              {item.role || item.degree || item.title || item.name}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <h3 className="font-semibold text-slate-900 truncate mb-1">
             {resume.title}

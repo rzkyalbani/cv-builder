@@ -6,11 +6,13 @@ import { ResumeCard } from '@/app/components/dashboard/ResumeCard';
 import { CreateResumeCard } from '@/app/components/dashboard/CreateResumeCard';
 import { Navbar } from '@/app/components/layout/Navbar';
 import { FileText } from 'lucide-react';
+import { ResumeContent } from '@/types/resume';
 
 interface Resume {
   id: string;
   title: string;
   updatedAt: Date;
+  content: ResumeContent | any;
 }
 
 interface DashboardClientProps {
