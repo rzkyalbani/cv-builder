@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import ResumeEditor from '@/app/components/editor/ResumeEditorNew';
+import ResumeEditor from '@/app/components/editor/ResumeEditor';
 import { ResumeContent } from '@/types/resume';
 
 interface PageProps {

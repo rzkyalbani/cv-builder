@@ -2,17 +2,22 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { ResumeContent, ResumeSection } from '@/types/resume';
-import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsForm';
+import { Save, Download, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ResumeContent } from '@/types/resume';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { ScrollArea } from '@/app/components/ui/scroll-area';
+import { Separator } from '@/app/components/ui/separator';
+import { EditorSidebar } from '@/app/components/editor/EditorSidebar';
 import ResumePreview from '@/app/components/preview/ResumePreview';
-import ExperienceForm from '@/app/components/editor/forms/ExperienceForm';
-import EducationForm from '@/app/components/editor/forms/EducationForm';
-import SkillsForm from '@/app/components/editor/forms/SkillsForm';
-import ProjectsForm from '@/app/components/editor/forms/ProjectsForm';
-import CustomSectionForm from '@/app/components/editor/forms/CustomSectionForm';
-import AddSection from '@/app/components/editor/AddSection';
-import SectionWrapper from '@/app/components/editor/SectionWrapper';
+import { ClientOnlyDnDWrapper } from '@/app/components/editor/ClientOnlyDnDWrapper';
+import { DropResult } from '@hello-pangea/dnd';
+import {
+  PanelResizeHandle,
+  Panel,
+  PanelGroup
+} from 'react-resizable-panels';
 
 interface ResumeEditorProps {
   initialData: ResumeContent;
@@ -22,12 +27,18 @@ interface ResumeEditorProps {
 export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProps) {
   const [resumeData, setResumeData] = useState<ResumeContent>(initialData);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const componentRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: `Resume-${resumeId}`,
+    documentTitle: `${resumeData.title || "Resume"}-${resumeId}`,
     pageStyle: `
       @page {
         size: auto;
@@ -40,128 +51,44 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     setResumeData(initialData);
   }, [initialData]);
 
-  const handlePersonalDetailsChange = (newData: any) => {
-    setResumeData(prev => ({
-      ...prev,
-      personalDetail: { ...prev.personalDetail, ...newData }
-    }));
-  };
+  const handleSave = async () => {
+    setSavingStatus('saving');
 
-  const handleSectionChange = (index: number, newItems: any[]) => {
-    setResumeData(prev => {
-      const newSections = [...prev.sections];
-      newSections[index] = {
-        ...newSections[index],
-        items: newItems
-      };
-      return { ...prev, sections: newSections };
-    });
-  };
+    try {
+      const response = await fetch(`/api/resumes/${resumeId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: resumeData,
+          title: resumeData.title
+        }),
+      });
 
-  const handleAddSection = (type: 'experience' | 'education' | 'skills' | 'projects' | 'custom') => {
-    // Check if this section type already exists
-    const existingSection = resumeData.sections.find(section => section.type === type);
-
-    if (existingSection) {
-      // Optional: scroll to the existing section
-      setActiveSection(existingSection.id);
-      return;
-    }
-
-    const newSection: ResumeSection = {
-      id: Date.now().toString(), // Simple ID generation
-      type,
-      title: type.charAt(0).toUpperCase() + type.slice(1),
-      isVisible: true,
-      columns: 1,
-      items: [],
-    };
-
-    setResumeData(prev => ({
-      ...prev,
-      sections: [...prev.sections, newSection]
-    }));
-
-    // Set the new section as active
-    setActiveSection(newSection.id);
-  };
-
-  const handleSectionToggle = (sectionId: string) => {
-    setActiveSection(activeSection === sectionId ? null : sectionId);
-  };
-
-  const handleDeleteSection = (sectionId: string) => {
-    const sectionToDelete = resumeData.sections.find(section => section.id === sectionId);
-    const sectionTitle = sectionToDelete?.title || sectionToDelete?.type || 'section';
-    
-    const confirmed = window.confirm(`Are you sure you want to delete the "${sectionTitle}" section? This action cannot be undone.`);
-    
-    if (confirmed) {
-      setResumeData(prev => ({
-        ...prev,
-        sections: prev.sections.filter(section => section.id !== sectionId)
-      }));
-      
-      // Clear active section if it was the deleted one
-      if (activeSection === sectionId) {
-        setActiveSection(null);
+      if (!response.ok) {
+        throw new Error('Failed to save resume');
       }
+
+      setSavingStatus('saved');
+      setTimeout(() => {
+        setSavingStatus('idle');
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      setSavingStatus('idle');
     }
   };
 
-  const renderSectionForm = (section: ResumeSection, index: number) => {
-    switch (section.type) {
-      case 'experience':
-        return (
-          <ExperienceForm
-            items={section.items as any}
-            onChange={(items) => handleSectionChange(index, items)}
-            droppableId={section.id}
-          />
-        );
-      case 'education':
-        return (
-          <EducationForm
-            items={section.items as any}
-            onChange={(items) => handleSectionChange(index, items)}
-            droppableId={section.id}
-          />
-        );
-      case 'skills':
-        return (
-          <SkillsForm
-            items={section.items as any}
-            onChange={(items) => handleSectionChange(index, items)}
-            droppableId={section.id}
-          />
-        );
-      case 'projects':
-        return (
-          <ProjectsForm
-            items={section.items as any}
-            onChange={(items) => handleSectionChange(index, items)}
-            droppableId={section.id}
-          />
-        );
-      case 'custom':
-        return (
-          <CustomSectionForm
-            items={section.items as any}
-            onChange={(items) => handleSectionChange(index, items)}
-            title={section.title}
-            droppableId={section.id}
-          />
-        );
-      default:
-        return (
-          <div>
-            <p className="text-gray-500 italic">Form for this section type is coming soon</p>
-          </div>
-        );
-    }
+  const updateTitle = (newTitle: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      title: newTitle
+    }));
   };
 
-  const onDragEnd = (result: DropResult) => {
+  // Handle drag end for both sections and items
+  const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return; // dropped outside the list
 
     if (result.type === 'SECTION') {
@@ -198,124 +125,167 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     }
   };
 
-  const handleSave = async () => {
-    setSavingStatus('saving');
+  // Handle section deletion
+  const handleDeleteSection = (sectionId: string) => {
+    const sectionToDelete = resumeData.sections.find(section => section.id === sectionId);
+    const sectionTitle = sectionToDelete?.title || sectionToDelete?.type || 'section';
 
-    try {
-      const response = await fetch(`/api/resumes/${resumeId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: resumeData
-        }),
-      });
+    const confirmed = window.confirm(`Are you sure you want to delete the "${sectionTitle}" section? This action cannot be undone.`);
 
-      if (!response.ok) {
-        throw new Error('Failed to save resume');
-      }
-
-      setSavingStatus('saved');
-
-      // Reset the saved status after 2 seconds
-      setTimeout(() => {
-        setSavingStatus('idle');
-      }, 2000);
-    } catch (error) {
-      console.error('Error saving resume:', error);
-      setSavingStatus('idle');
+    if (confirmed) {
+      setResumeData(prev => ({
+        ...prev,
+        sections: prev.sections.filter(section => section.id !== sectionId)
+      }));
     }
   };
 
-  return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header with Save button */}
-      <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-gray-800">Resume Editor</h1>
-        </div>
-        <div className="flex space-x-2">
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-          >
-            Download PDF
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={savingStatus === 'saving'}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
-          </button>
-        </div>
-      </header>
-
-      {/* Split layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel: Form Area */}
-        <div className="w-1/2 bg-white overflow-y-auto p-6 border-r border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Edit Resume</h2>
-
-          {/* Wrap everything in a single DragDropContext */}
-          <DragDropContext onDragEnd={onDragEnd}>
-            {/* Personal Details Section with SectionWrapper */}
-            <SectionWrapper
-              title="Personal Details"
-              isOpen={activeSection === 'personal-details'}
-              onToggle={() => setActiveSection(activeSection === 'personal-details' ? null : 'personal-details')}
-            >
-              <PersonalDetailsForm
-                data={resumeData.personalDetail}
-                onChange={handlePersonalDetailsChange}
+  // Prevent hydration mismatch - return null on server
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col h-screen bg-white">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Input
+                type="text"
+                value={resumeData.title ?? ""}
+                onChange={(e) => updateTitle(e.target.value)}
+                placeholder="Untitled Resume"
+                className="w-64 border-none shadow-none focus-visible:ring-0 font-medium text-slate-900 bg-transparent placeholder:text-slate-400"
               />
-            </SectionWrapper>
-
-            {/* Render existing sections with Drag & Drop functionality */}
-            <div className="sections-container">
-              <Droppable droppableId="sections" type="SECTION">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef}>
-                    {resumeData.sections.map((section, index) => (
-                      <Draggable key={section.id} draggableId={section.id} index={index}>
-                        {(provided, snapshot) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`${snapshot.isDragging ? 'shadow-lg rounded-md' : ''}`}
-                          >
-                            <SectionWrapper
-                              title={section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
-                              isOpen={activeSection === section.id}
-                              onToggle={() => handleSectionToggle(section.id)}
-                              onDelete={() => handleDeleteSection(section.id)}
-                              canDelete={true}
-                              dragHandleProps={provided.dragHandleProps} // Pass the drag handle props
-                            >
-                              {renderSectionForm(section, index)}
-                            </SectionWrapper>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
             </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={savingStatus === 'saving'}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </header>
 
-            {/* Add section component */}
-            <AddSection onAddSection={handleAddSection} />
-          </DragDropContext>
-        </div>
-
-        {/* Right Panel: Live Preview Area */}
-        <div className="w-1/2 bg-gray-200 overflow-y-auto p-6 flex justify-center items-start">
-          <ResumePreview ref={componentRef} data={resumeData} />
-        </div>
+        {/* Loading skeleton for content */}
+        <PanelGroup direction="horizontal" className="flex flex-1 overflow-hidden h-full">
+          <Panel
+            defaultSize={50}
+            minSize={25}
+            className="border-r border-slate-200 flex flex-col bg-white md:min-w-[320px]"
+          >
+            <div className="flex-1 p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-5/6 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-4/6"></div>
+              </div>
+            </div>
+          </Panel>
+          <PanelResizeHandle
+            className="bg-slate-200 hover:bg-slate-300 transition-colors w-2 data-[panel-group-direction=vertical]:h-2 data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:min-h-0 data-[panel-group-direction=vertical]:min-w-full"
+          />
+          <Panel defaultSize={50} className="bg-slate-50 overflow-y-auto flex items-center justify-center">
+            <div className="w-full max-w-[210mm] bg-white h-[842px] animate-pulse"></div>
+          </Panel>
+        </PanelGroup>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <ClientOnlyDnDWrapper onDragEnd={handleDragEnd}>
+      <div className="flex flex-col h-screen bg-white">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Input
+                type="text"
+                value={resumeData.title ?? ""}
+                onChange={(e) => updateTitle(e.target.value)}
+                placeholder="Untitled Resume"
+                className="w-64 border-none shadow-none focus-visible:ring-0 font-medium text-slate-900 bg-transparent placeholder:text-slate-400"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={savingStatus === 'saving'}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Two-column layout - ALL inside DragDropContext */}
+        <PanelGroup direction="horizontal" className="flex flex-1 overflow-hidden h-full">
+          {/* Left: Editor Sidebar */}
+          <Panel
+            defaultSize={40}
+            minSize={25}
+            className="border-r border-slate-200 flex flex-col bg-white md:min-w-[320px]"
+          >
+            <ScrollArea className="flex-1">
+              <div className="p-6 text-slate-900">
+                <EditorSidebar
+                  resumeData={resumeData}
+                  setResumeData={setResumeData}
+                  onDeleteSection={handleDeleteSection}
+                />
+              </div>
+            </ScrollArea>
+          </Panel>
+
+          <PanelResizeHandle
+            className="bg-slate-200 hover:bg-slate-300 transition-colors w-2 data-[panel-group-direction=vertical]:h-2 data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:min-h-0 data-[panel-group-direction=vertical]:min-w-full"
+          />
+
+          {/* Right: Live Preview */}
+          <Panel
+            defaultSize={60}
+            className="bg-slate-50 overflow-y-auto flex items-center justify-center"
+          >
+            <div className="w-full max-w-[210mm]">
+              <ResumePreview ref={componentRef} data={resumeData} />
+            </div>
+          </Panel>
+        </PanelGroup>
+      </div>
+    </ClientOnlyDnDWrapper>
   );
 }
