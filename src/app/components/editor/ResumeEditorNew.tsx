@@ -93,7 +93,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
               value={resumeData.title ?? ""}
               onChange={(e) => updateTitle(e.target.value)}
               placeholder="Untitled Resume"
-              className="w-64 border-none shadow-none focus-visible:ring-0 font-medium"
+              className="w-64 border-none shadow-none focus-visible:ring-0 font-medium text-slate-900 bg-transparent placeholder:text-slate-400"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         {/* Left: Editor Sidebar */}
         <aside className="w-[480px] border-r border-slate-200 flex flex-col bg-white">
           <ScrollArea className="flex-1">
-            <div className="p-6">
+            <div className="p-6 text-slate-900">
               <EditorSidebar
                 resumeData={resumeData}
                 setResumeData={setResumeData}

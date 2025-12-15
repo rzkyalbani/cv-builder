@@ -168,7 +168,7 @@ export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps)
               size="sm"
               onClick={() => handleAddSection(type)}
               disabled={existingSectionTypes.includes(type) && type !== 'custom'}
-              className="text-xs"
+              className="text-xs border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
               <Plus className="h-3 w-3 mr-1" />
               {label}
