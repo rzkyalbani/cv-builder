@@ -74,4 +74,8 @@ export interface ResumeContent {
   title?: string;
   personalDetail: PersonalDetail;
   sections: ResumeSection[];
+  settings?: {
+    themeColor?: string;
+    layout?: 'modern' | 'classic';
+  };
 }

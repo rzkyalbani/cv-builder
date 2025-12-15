@@ -14,6 +14,8 @@ import SkillsForm from '@/app/components/editor/forms/SkillsForm';
 import ProjectsForm from '@/app/components/editor/forms/ProjectsForm';
 import CustomSectionForm from '@/app/components/editor/forms/CustomSectionForm';
 import { Button } from '@/app/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/app/components/ui/radio-group';
+import { Label } from '@/app/components/ui/label';
 import { Plus } from 'lucide-react';
 
 interface EditorSidebarProps {
@@ -26,6 +28,13 @@ export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps)
     setResumeData(prev => ({
       ...prev,
       personalDetail: { ...prev.personalDetail, ...newData }
+    }));
+  };
+
+  const handleSettingsChange = (newSettings: any) => {
+    setResumeData(prev => ({
+      ...prev,
+      settings: { ...prev.settings, ...newSettings }
     }));
   };
 
@@ -44,8 +53,9 @@ export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps)
     const existingSection = resumeData.sections.find(section => section.type === type);
     if (existingSection) return;
 
+    const newId = crypto.randomUUID();
     const newSection: ResumeSection = {
-      id: Date.now().toString(),
+      id: newId,
       type,
       title: type.charAt(0).toUpperCase() + type.slice(1),
       isVisible: true,
@@ -122,6 +132,34 @@ export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps)
       <div>
         <h2 className="text-lg font-semibold text-slate-900 mb-1">Edit Resume</h2>
         <p className="text-sm text-slate-500">Build your resume section by section</p>
+      </div>
+
+      {/* Layout Settings */}
+      <div className="p-4 border border-slate-200 rounded-lg bg-white">
+        <h3 className="text-sm font-medium text-slate-700 mb-3">Layout Template</h3>
+        <RadioGroup
+          value={resumeData.settings?.layout || 'modern'}
+          onValueChange={(value: 'modern' | 'classic') => handleSettingsChange({ layout: value })}
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="modern" id="modern" />
+            <Label htmlFor="modern" className="text-sm cursor-pointer">
+              <div>
+                <div className="font-medium">Modern</div>
+                <div className="text-xs text-slate-500">Clean, contemporary layout with sections</div>
+              </div>
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="classic" id="classic" />
+            <Label htmlFor="classic" className="text-sm cursor-pointer">
+              <div>
+                <div className="font-medium">Classic</div>
+                <div className="text-xs text-slate-500">Traditional single-column with serif fonts</div>
+              </div>
+            </Label>
+          </div>
+        </RadioGroup>
       </div>
 
       <Accordion type="multiple" className="space-y-2">
