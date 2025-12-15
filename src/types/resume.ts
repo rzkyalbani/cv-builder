@@ -71,6 +71,7 @@ export interface ResumeSection {
 
 // Root interface for the resume content stored in the DB
 export interface ResumeContent {
+  title?: string;
   personalDetail: PersonalDetail;
   sections: ResumeSection[];
 }

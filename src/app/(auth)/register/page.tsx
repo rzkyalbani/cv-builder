@@ -3,8 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { UserPlus } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { signIn } from 'next-auth/react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -21,7 +24,6 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    // Client-side validation
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       setLoading(false);
@@ -43,7 +45,6 @@ export default function RegisterPage() {
         throw new Error(data.error || 'Something went wrong');
       }
 
-      // Auto-login after successful registration
       const signInResult = await signIn('credentials', {
         email,
         password,
@@ -56,9 +57,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // On success, redirect to dashboard
       router.push('/dashboard');
-      router.refresh(); // Refresh to update any UI that depends on auth state
+      router.refresh();
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration');
     } finally {
@@ -67,101 +67,83 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md">
-      <div className="flex flex-col items-center space-y-4 mb-8">
-        <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded-full">
-          <UserPlus className="h-8 w-8 text-blue-600 dark:text-blue-300" />
+    <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200 w-full max-w-md">
+      <div className="flex flex-col items-center mb-8">
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 mb-4">
+          <FileText className="h-6 w-6 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Create Account</h1>
-        <p className="text-gray-600 dark:text-gray-300">Enter your details to register</p>
+        <h1 className="text-2xl font-bold text-slate-900">Create Account</h1>
+        <p className="text-slate-600 mt-1">Get started with your free account</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm">
+        <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-200">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Full Name
-          </label>
-          <input
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="name">Full Name</Label>
+          <Input
             id="name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             placeholder="John Doe"
           />
         </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email Address
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
             placeholder="john@example.com"
           />
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Password
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="••••••••"
+            placeholder="Create a password"
+            minLength={6}
           />
         </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Confirm Password
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="••••••••"
+            placeholder="Confirm your password"
+            minLength={6}
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 px-4 rounded-lg text-white font-medium ${
-            loading
-              ? 'bg-blue-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'
-          } transition-colors duration-200`}
-        >
-          {loading ? 'Creating Account...' : 'Register'}
-        </button>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Creating account...' : 'Create Account'}
+        </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
+      <p className="mt-6 text-center text-sm text-slate-600">
         Already have an account?{' '}
-        <Link href="/login" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+        <Link href="/login" className="font-medium text-slate-900 hover:underline">
           Sign in
         </Link>
-      </div>
+      </p>
     </div>
   );
 }

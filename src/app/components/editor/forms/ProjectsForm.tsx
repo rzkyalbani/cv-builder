@@ -63,7 +63,7 @@ export default function ProjectsForm({ items, onChange, droppableId }: ProjectsF
     onChange(itemsCopy);
   };
 
-  const formatDates = (startDate: string, endDate: string) => {
+  const formatDates = (startDate: string, endDate?: string) => {
     if (!startDate) return '';
     const start = startDate ? new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '';
     const end = endDate ? new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '';

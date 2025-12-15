@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { LogIn } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import { Button } from '@/app/components/ui/button';
+import { Input } from '@/app/components/ui/input';
+import { Label } from '@/app/components/ui/label';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -31,7 +34,6 @@ export default function LoginPage() {
         return;
       }
 
-      // On success, redirect to dashboard
       router.push('/dashboard');
       router.refresh();
     } catch (err: any) {
@@ -42,71 +44,57 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md">
-      <div className="flex flex-col items-center space-y-4 mb-8">
-        <div className="bg-green-100 dark:bg-green-900 p-3 rounded-full">
-          <LogIn className="h-8 w-8 text-green-600 dark:text-green-300" />
+    <div className="bg-white p-8 rounded-lg shadow-sm border border-slate-200 w-full max-w-md">
+      <div className="flex flex-col items-center mb-8">
+        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 mb-4">
+          <FileText className="h-6 w-6 text-white" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Sign In</h1>
-        <p className="text-gray-600 dark:text-gray-300">Enter your credentials to continue</p>
+        <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
+        <p className="text-slate-600 mt-1">Sign in to your account</p>
       </div>
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 rounded-lg text-sm">
+        <div className="mb-6 p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-200">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email Address
-          </label>
-          <input
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
             placeholder="john@example.com"
           />
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Password
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:border-green-500 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-            placeholder="••••••••"
+            placeholder="Enter your password"
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 px-4 rounded-lg text-white font-medium ${
-            loading 
-              ? 'bg-green-400 cursor-not-allowed' 
-              : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
-          } transition-colors duration-200`}
-        >
-          {loading ? 'Signing In...' : 'Login'}
-        </button>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Signing in...' : 'Sign In'}
+        </Button>
       </form>
 
-      <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-        Don't have an account?{' '}
-        <Link href="/register" className="text-green-600 dark:text-green-400 font-medium hover:underline">
+      <p className="mt-6 text-center text-sm text-slate-600">
+        Don&apos;t have an account?{' '}
+        <Link href="/register" className="font-medium text-slate-900 hover:underline">
           Sign up
         </Link>
-      </div>
+      </p>
     </div>
   );
 }

@@ -62,7 +62,7 @@ export default function ExperienceForm({ items, onChange, droppableId }: Experie
     onChange(itemsCopy);
   };
 
-  const formatDates = (startDate: string, endDate: string, currentlyWorking: boolean) => {
+  const formatDates = (startDate: string, endDate?: string, currentlyWorking?: boolean) => {
     if (!startDate) return '';
     const start = startDate ? new Date(startDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '';
     const end = currentlyWorking ? 'Present' : (endDate ? new Date(endDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : '');

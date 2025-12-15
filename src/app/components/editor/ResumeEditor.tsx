@@ -27,7 +27,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
-    documentTitle: `${resumeData.title || "Resume"}-${resumeId}`,
+    documentTitle: `Resume-${resumeId}`,
     pageStyle: `
       @page {
         size: auto;
@@ -102,7 +102,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       case 'experience':
         return (
           <ExperienceForm
-            items={section.items}
+            items={section.items as any}
             onChange={(items) => handleSectionChange(index, items)}
             droppableId={section.id}
           />
@@ -110,7 +110,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       case 'education':
         return (
           <EducationForm
-            items={section.items}
+            items={section.items as any}
             onChange={(items) => handleSectionChange(index, items)}
             droppableId={section.id}
           />
@@ -118,7 +118,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       case 'skills':
         return (
           <SkillsForm
-            items={section.items}
+            items={section.items as any}
             onChange={(items) => handleSectionChange(index, items)}
             droppableId={section.id}
           />
@@ -126,7 +126,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       case 'projects':
         return (
           <ProjectsForm
-            items={section.items}
+            items={section.items as any}
             onChange={(items) => handleSectionChange(index, items)}
             droppableId={section.id}
           />
@@ -134,7 +134,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
       case 'custom':
         return (
           <CustomSectionForm
-            items={section.items}
+            items={section.items as any}
             onChange={(items) => handleSectionChange(index, items)}
             title={section.title}
             droppableId={section.id}
@@ -196,8 +196,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          content: resumeData,
-          title: resumeData.title
+          content: resumeData
         }),
       });
 
@@ -217,26 +216,12 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     }
   };
 
-  const updateTitle = (newTitle: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      title: newTitle
-    }));
-  };
-
   return (
     <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header with Save button and editable title */}
+      {/* Header with Save button */}
       <header className="bg-white shadow py-4 px-6 flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-semibold text-gray-800">Resume Editor</h1>
-          <input
-            type="text"
-            value={resumeData.title ?? ""}
-            onChange={(e) => updateTitle(e.target.value)}
-            placeholder="Untitled Resume"
-            className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-          />
         </div>
         <div className="flex space-x-2">
           <button
