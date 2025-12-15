@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { ResumeSection } from '@/types/resume';
 
 interface CustomSectionFormProps {
@@ -53,15 +53,7 @@ export default function CustomSectionForm({ items, onChange, title, droppableId 
     setExpandedItemIndex(null);
   };
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const itemsCopy = Array.from(items);
-    const [reorderedItem] = itemsCopy.splice(result.source.index, 1);
-    itemsCopy.splice(result.destination.index, 0, reorderedItem);
-
-    onChange(itemsCopy);
-  };
+  
 
   const formatDates = (startDate: string, endDate: string) => {
     if (!startDate) return '';
@@ -71,13 +63,11 @@ export default function CustomSectionForm({ items, onChange, title, droppableId 
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">{title || 'Custom Section'}</h3>
-
+    <>
       {items.length === 0 ? (
         <p className="text-gray-500 italic mb-4">No items added yet</p>
       ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
+        
           <Droppable droppableId={droppableId} type="ITEM">
             {(provided) => (
               <div 
@@ -261,7 +251,7 @@ export default function CustomSectionForm({ items, onChange, title, droppableId 
               </div>
             )}
           </Droppable>
-        </DragDropContext>
+        
       )}
 
       <button
@@ -271,6 +261,6 @@ export default function CustomSectionForm({ items, onChange, title, droppableId 
       >
         + Add Entry
       </button>
-    </div>
+    </>
   );
 }

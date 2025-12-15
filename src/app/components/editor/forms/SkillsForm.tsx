@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { SkillItem } from '@/types/resume';
 
 interface SkillsFormProps {
@@ -49,15 +49,7 @@ export default function SkillsForm({ items, onChange, droppableId }: SkillsFormP
     setExpandedItemIndex(null);
   };
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-
-    const itemsCopy = Array.from(items);
-    const [reorderedItem] = itemsCopy.splice(result.source.index, 1);
-    itemsCopy.splice(result.destination.index, 0, reorderedItem);
-
-    onChange(itemsCopy);
-  };
+  
 
   const getLevelColor = (level?: string) => {
     switch (level) {
@@ -70,13 +62,11 @@ export default function SkillsForm({ items, onChange, droppableId }: SkillsFormP
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Skills</h3>
-
+    <>
       {items.length === 0 ? (
         <p className="text-gray-500 italic mb-4">No skills added yet</p>
       ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
+        
           <Droppable droppableId={droppableId} type="ITEM">
             {(provided) => (
               <div 
@@ -221,7 +211,7 @@ export default function SkillsForm({ items, onChange, droppableId }: SkillsFormP
               </div>
             )}
           </Droppable>
-        </DragDropContext>
+        
       )}
 
       <button
@@ -231,6 +221,6 @@ export default function SkillsForm({ items, onChange, droppableId }: SkillsFormP
       >
         + Add Skill
       </button>
-    </div>
+    </>
   );
 }

@@ -7,6 +7,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/app/components/ui/accordion';
+import { Draggable } from '@hello-pangea/dnd';
+import { StrictModeDroppable } from './StrictModeDroppable';
+import { Trash2, GripVertical } from 'lucide-react';
 import PersonalDetailsForm from '@/app/components/editor/forms/PersonalDetailsForm';
 import ExperienceForm from '@/app/components/editor/forms/ExperienceForm';
 import EducationForm from '@/app/components/editor/forms/EducationForm';
@@ -21,9 +24,10 @@ import { Plus } from 'lucide-react';
 interface EditorSidebarProps {
   resumeData: ResumeContent;
   setResumeData: React.Dispatch<React.SetStateAction<ResumeContent>>;
+  onDeleteSection?: (sectionId: string) => void;
 }
 
-export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps) {
+export function EditorSidebar({ resumeData, setResumeData, onDeleteSection }: EditorSidebarProps) {
   const handlePersonalDetailsChange = (newData: any) => {
     setResumeData(prev => ({
       ...prev,
@@ -162,8 +166,8 @@ export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps)
         </RadioGroup>
       </div>
 
+      {/* Personal Details Section (not draggable) */}
       <Accordion type="multiple" className="space-y-2">
-        {/* Personal Details Section */}
         <AccordionItem value="personal-details" className="border border-slate-200 rounded-lg px-4 bg-white">
           <AccordionTrigger className="hover:no-underline">
             <span className="font-medium text-slate-900">Personal Details</span>
@@ -175,25 +179,61 @@ export function EditorSidebar({ resumeData, setResumeData }: EditorSidebarProps)
             />
           </AccordionContent>
         </AccordionItem>
-
-        {/* Dynamic Sections */}
-        {resumeData.sections.map((section, index) => (
-          <AccordionItem
-            key={section.id}
-            value={section.id}
-            className="border border-slate-200 rounded-lg px-4 bg-white"
-          >
-            <AccordionTrigger className="hover:no-underline">
-              <span className="font-medium text-slate-900">
-                {section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              {renderSectionForm(section, index)}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
       </Accordion>
+
+      {/* Draggable Sections */}
+      <StrictModeDroppable droppableId="sections" type="SECTION">
+        {(provided) => (
+          <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+            {resumeData.sections.map((section, index) => (
+              <Draggable key={section.id} draggableId={section.id} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    className={`border border-slate-200 rounded-lg bg-white ${
+                      snapshot.isDragging ? 'shadow-lg opacity-75' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <div className="flex items-center flex-1">
+                        <div
+                          {...provided.dragHandleProps}
+                          className="mr-3 cursor-move text-slate-400 hover:text-slate-600"
+                        >
+                          <GripVertical className="h-5 w-5" />
+                        </div>
+                        <Accordion type="single" className="flex-1" collapsible>
+                          <AccordionItem value={section.id} className="border-0">
+                            <AccordionTrigger className="hover:no-underline py-2">
+                              <span className="font-medium text-slate-900">
+                                {section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
+                              </span>
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-0 px-4 pb-4">
+                              {renderSectionForm(section, index)}
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      </div>
+                      {onDeleteSection && (
+                        <button
+                          onClick={() => onDeleteSection(section.id)}
+                          className="ml-2 p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+                          title="Delete section"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </StrictModeDroppable>
 
       {/* Add Section */}
       <div className="pt-4">

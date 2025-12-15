@@ -11,6 +11,8 @@ import { ScrollArea } from '@/app/components/ui/scroll-area';
 import { Separator } from '@/app/components/ui/separator';
 import { EditorSidebar } from '@/app/components/editor/EditorSidebar';
 import ResumePreview from '@/app/components/preview/ResumePreview';
+import { ClientOnlyDnDWrapper } from '@/app/components/editor/ClientOnlyDnDWrapper';
+import { DropResult } from '@hello-pangea/dnd';
 
 interface ResumeEditorProps {
   initialData: ResumeContent;
@@ -20,8 +22,14 @@ interface ResumeEditorProps {
 export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProps) {
   const [resumeData, setResumeData] = useState<ResumeContent>(initialData);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [isMounted, setIsMounted] = useState(false);
   const componentRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
@@ -74,70 +82,191 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
     }));
   };
 
-  return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* Header */}
-      <header className="border-b border-slate-200 bg-white">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/dashboard')}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <Separator orientation="vertical" className="h-6" />
-            <Input
-              type="text"
-              value={resumeData.title ?? ""}
-              onChange={(e) => updateTitle(e.target.value)}
-              placeholder="Untitled Resume"
-              className="w-64 border-none shadow-none focus-visible:ring-0 font-medium text-slate-900 bg-transparent placeholder:text-slate-400"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handlePrint}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={savingStatus === 'saving'}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
-            </Button>
-          </div>
-        </div>
-      </header>
+  // Handle drag end for both sections and items
+  const handleDragEnd = (result: DropResult) => {
+    if (!result.destination) return; // dropped outside the list
 
-      {/* Two-column layout */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Editor Sidebar */}
-        <aside className="w-[480px] border-r border-slate-200 flex flex-col bg-white">
-          <ScrollArea className="flex-1">
-            <div className="p-6 text-slate-900">
-              <EditorSidebar
-                resumeData={resumeData}
-                setResumeData={setResumeData}
+    if (result.type === 'SECTION') {
+      // Reorder the sections array
+      const items = Array.from(resumeData.sections);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+
+      setResumeData(prev => ({
+        ...prev,
+        sections: items
+      }));
+    } else if (result.type === 'ITEM') {
+      // Reorder the items array within a section
+      const sectionId = result.source.droppableId;
+      const sectionIndex = resumeData.sections.findIndex(section => section.id === sectionId);
+
+      if (sectionIndex === -1) return;
+
+      const updatedSections = [...resumeData.sections];
+      const items = Array.from(updatedSections[sectionIndex].items);
+      const [reorderedItem] = items.splice(result.source.index, 1);
+      items.splice(result.destination.index, 0, reorderedItem);
+
+      updatedSections[sectionIndex] = {
+        ...updatedSections[sectionIndex],
+        items: items
+      };
+
+      setResumeData(prev => ({
+        ...prev,
+        sections: updatedSections
+      }));
+    }
+  };
+
+  // Handle section deletion
+  const handleDeleteSection = (sectionId: string) => {
+    const sectionToDelete = resumeData.sections.find(section => section.id === sectionId);
+    const sectionTitle = sectionToDelete?.title || sectionToDelete?.type || 'section';
+    
+    const confirmed = window.confirm(`Are you sure you want to delete the "${sectionTitle}" section? This action cannot be undone.`);
+    
+    if (confirmed) {
+      setResumeData(prev => ({
+        ...prev,
+        sections: prev.sections.filter(section => section.id !== sectionId)
+      }));
+    }
+  };
+
+  // Prevent hydration mismatch - return null on server
+  if (!isMounted) {
+    return (
+      <div className="flex flex-col h-screen bg-white">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Input
+                type="text"
+                value={resumeData.title ?? ""}
+                onChange={(e) => updateTitle(e.target.value)}
+                placeholder="Untitled Resume"
+                className="w-64 border-none shadow-none focus-visible:ring-0 font-medium text-slate-900 bg-transparent placeholder:text-slate-400"
               />
             </div>
-          </ScrollArea>
-        </aside>
-
-        {/* Right: Live Preview */}
-        <main className="flex-1 bg-slate-50 overflow-y-auto">
-          <div className="flex justify-center py-8 px-6">
-            <div className="w-full max-w-[210mm]">
-              <ResumePreview ref={componentRef} data={resumeData} />
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={savingStatus === 'saving'}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
+              </Button>
             </div>
           </div>
-        </main>
+        </header>
+
+        {/* Loading skeleton for content */}
+        <div className="flex flex-1 overflow-hidden">
+          <aside className="w-[480px] border-r border-slate-200 flex flex-col bg-white">
+            <div className="flex-1 p-6">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded w-full mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-5/6 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-4/6"></div>
+              </div>
+            </div>
+          </aside>
+          <main className="flex-1 bg-slate-50 overflow-y-auto">
+            <div className="flex justify-center py-8 px-6">
+              <div className="w-full max-w-[210mm] bg-white h-[842px] animate-pulse"></div>
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <ClientOnlyDnDWrapper onDragEnd={handleDragEnd}>
+      <div className="flex flex-col h-screen bg-white">
+        {/* Header */}
+        <header className="border-b border-slate-200 bg-white">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.push('/dashboard')}
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <Separator orientation="vertical" className="h-6" />
+              <Input
+                type="text"
+                value={resumeData.title ?? ""}
+                onChange={(e) => updateTitle(e.target.value)}
+                placeholder="Untitled Resume"
+                className="w-64 border-none shadow-none focus-visible:ring-0 font-medium text-slate-900 bg-transparent placeholder:text-slate-400"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={handlePrint}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={savingStatus === 'saving'}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {savingStatus === 'saving' ? 'Saving...' : savingStatus === 'saved' ? 'Saved!' : 'Save'}
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        {/* Two-column layout - ALL inside DragDropContext */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left: Editor Sidebar */}
+          <aside className="w-[480px] border-r border-slate-200 flex flex-col bg-white">
+            <ScrollArea className="flex-1">
+              <div className="p-6 text-slate-900">
+                <EditorSidebar
+                  resumeData={resumeData}
+                  setResumeData={setResumeData}
+                  onDeleteSection={handleDeleteSection}
+                />
+              </div>
+            </ScrollArea>
+          </aside>
+
+          {/* Right: Live Preview */}
+          <main className="flex-1 bg-slate-50 overflow-y-auto">
+            <div className="flex justify-center py-8 px-6">
+              <div className="w-full max-w-[210mm]">
+                <ResumePreview ref={componentRef} data={resumeData} />
+              </div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </ClientOnlyDnDWrapper>
   );
 }

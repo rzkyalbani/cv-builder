@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 
 interface SectionWrapperProps {
   title: string;
@@ -7,7 +7,7 @@ interface SectionWrapperProps {
   children: ReactNode;
   onDelete?: () => void;
   canDelete?: boolean;
-  dragHandleProps?: any; // Props for drag handle
+  dragHandleProps?: React.HTMLAttributes<HTMLDivElement> | null; // Props for drag handle
 }
 
 export default function SectionWrapper({

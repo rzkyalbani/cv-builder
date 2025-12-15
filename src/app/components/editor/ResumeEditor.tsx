@@ -91,10 +91,22 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
   };
 
   const handleDeleteSection = (sectionId: string) => {
-    setResumeData(prev => ({
-      ...prev,
-      sections: prev.sections.filter(section => section.id !== sectionId)
-    }));
+    const sectionToDelete = resumeData.sections.find(section => section.id === sectionId);
+    const sectionTitle = sectionToDelete?.title || sectionToDelete?.type || 'section';
+    
+    const confirmed = window.confirm(`Are you sure you want to delete the "${sectionTitle}" section? This action cannot be undone.`);
+    
+    if (confirmed) {
+      setResumeData(prev => ({
+        ...prev,
+        sections: prev.sections.filter(section => section.id !== sectionId)
+      }));
+      
+      // Clear active section if it was the deleted one
+      if (activeSection === sectionId) {
+        setActiveSection(null);
+      }
+    }
   };
 
   const renderSectionForm = (section: ResumeSection, index: number) => {
@@ -247,53 +259,56 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         <div className="w-1/2 bg-white overflow-y-auto p-6 border-r border-gray-200">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Edit Resume</h2>
 
-          {/* Personal Details Section with SectionWrapper */}
-          <SectionWrapper
-            title="Personal Details"
-            isOpen={activeSection === 'personal-details'}
-            onToggle={() => setActiveSection(activeSection === 'personal-details' ? null : 'personal-details')}
-          >
-            <PersonalDetailsForm
-              data={resumeData.personalDetail}
-              onChange={handlePersonalDetailsChange}
-            />
-          </SectionWrapper>
-
-          {/* Render existing sections with Drag & Drop functionality */}
+          {/* Wrap everything in a single DragDropContext */}
           <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="sections" type="SECTION">
-              {(provided) => (
-                <div {...provided.droppableProps} ref={provided.innerRef}>
-                  {resumeData.sections.map((section, index) => (
-                    <Draggable key={section.id} draggableId={section.id} index={index}>
-                      {(provided, snapshot) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          className={`${snapshot.isDragging ? 'shadow-lg rounded-md' : ''}`}
-                        >
-                          <SectionWrapper
-                            title={section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
-                            isOpen={activeSection === section.id}
-                            onToggle={() => handleSectionToggle(section.id)}
-                            onDelete={() => handleDeleteSection(section.id)}
-                            canDelete={true}
-                            dragHandleProps={provided.dragHandleProps} // Pass the drag handle props
-                          >
-                            {renderSectionForm(section, index)}
-                          </SectionWrapper>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+            {/* Personal Details Section with SectionWrapper */}
+            <SectionWrapper
+              title="Personal Details"
+              isOpen={activeSection === 'personal-details'}
+              onToggle={() => setActiveSection(activeSection === 'personal-details' ? null : 'personal-details')}
+            >
+              <PersonalDetailsForm
+                data={resumeData.personalDetail}
+                onChange={handlePersonalDetailsChange}
+              />
+            </SectionWrapper>
 
-          {/* Add section component */}
-          <AddSection onAddSection={handleAddSection} />
+            {/* Render existing sections with Drag & Drop functionality */}
+            <div className="sections-container">
+              <Droppable droppableId="sections" type="SECTION">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {resumeData.sections.map((section, index) => (
+                      <Draggable key={section.id} draggableId={section.id} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={`${snapshot.isDragging ? 'shadow-lg rounded-md' : ''}`}
+                          >
+                            <SectionWrapper
+                              title={section.title || section.type.charAt(0).toUpperCase() + section.type.slice(1)}
+                              isOpen={activeSection === section.id}
+                              onToggle={() => handleSectionToggle(section.id)}
+                              onDelete={() => handleDeleteSection(section.id)}
+                              canDelete={true}
+                              dragHandleProps={provided.dragHandleProps} // Pass the drag handle props
+                            >
+                              {renderSectionForm(section, index)}
+                            </SectionWrapper>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </div>
+
+            {/* Add section component */}
+            <AddSection onAddSection={handleAddSection} />
+          </DragDropContext>
         </div>
 
         {/* Right Panel: Live Preview Area */}
