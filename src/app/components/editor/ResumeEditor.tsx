@@ -143,9 +143,9 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
   // Prevent hydration mismatch - return null on server
   if (!isMounted) {
     return (
-      <div className="flex flex-col h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-white">
         {/* Header */}
-        <header className="border-b border-slate-200 bg-white">
+        <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <Button
@@ -184,7 +184,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         </header>
 
         {/* Loading skeleton for content */}
-        <PanelGroup direction="horizontal" className="flex flex-1 overflow-hidden h-full">
+        <PanelGroup direction="horizontal" className="flex flex-1">
           <Panel
             defaultSize={50}
             minSize={25}
@@ -202,8 +202,8 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           <PanelResizeHandle
             className="bg-slate-200 hover:bg-slate-300 transition-colors w-2 data-[panel-group-direction=vertical]:h-2 data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:min-h-0 data-[panel-group-direction=vertical]:min-w-full"
           />
-          <Panel defaultSize={50} className="bg-slate-50 overflow-y-auto flex items-center justify-center">
-            <div className="w-full max-w-[210mm] bg-white h-[842px] animate-pulse"></div>
+          <Panel defaultSize={50} className="bg-slate-50 flex items-start justify-center">
+            <div className="w-full max-w-[210mm] pt-4 pb-8 bg-white h-[842px] animate-pulse"></div>
           </Panel>
         </PanelGroup>
       </div>
@@ -212,9 +212,9 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
 
   return (
     <ClientOnlyDnDWrapper onDragEnd={handleDragEnd}>
-      <div className="flex flex-col h-screen bg-white">
+      <div className="flex flex-col min-h-screen bg-white">
         {/* Header */}
-        <header className="border-b border-slate-200 bg-white">
+        <header className="border-b border-slate-200 bg-white sticky top-0 z-10">
           <div className="flex items-center justify-between px-6 py-4">
             <div className="flex items-center gap-4">
               <Button
@@ -253,7 +253,7 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
         </header>
 
         {/* Two-column layout - ALL inside DragDropContext */}
-        <PanelGroup direction="horizontal" className="flex flex-1 overflow-hidden h-full">
+        <PanelGroup direction="horizontal" className="flex flex-1">
           {/* Left: Editor Sidebar */}
           <Panel
             defaultSize={40}
@@ -278,9 +278,9 @@ export default function ResumeEditor({ initialData, resumeId }: ResumeEditorProp
           {/* Right: Live Preview */}
           <Panel
             defaultSize={60}
-            className="bg-slate-50 overflow-y-auto flex items-center justify-center"
+            className="bg-slate-50 flex items-start justify-center"
           >
-            <div className="w-full max-w-[210mm]">
+            <div className="w-full max-w-[210mm] pt-4 pb-8"> {/* Added pb-8 for bottom spacing */}
               <ResumePreview ref={componentRef} data={resumeData} />
             </div>
           </Panel>
